@@ -1,60 +1,71 @@
-MIDI Hardware Tracker-Style Sequencer
+# Hardware Tracker MIDI Sequencer
 
-This repository contains the firmware and documentation for a hardware tracker-style MIDI sequencer designed for DJs and home producers. The sequencer provides an intuitive and tactile interface for creating and performing music, blending features of classic hardware sequencers with modern MIDI control.
+A hardware-style MIDI sequencer designed for DJs and home producers. This device combines tactile control with powerful features to streamline music creation and performance.
 
-Features
+---
 
-	•	16 Tracks
-Each track consists of 4 bytes:
-	•	1st byte: Type and channel
-	•	2nd byte: Data byte 1 (Note)
-	•	3rd byte: Data byte 2 (Velocity)
-	•	4th byte: Delay
-	•	Magnetic Encoder
-	•	Controls track position and syncs playback “vinyl-style.”
-	•	Includes a shift key beneath the encoder for alternate functions.
-	•	Tempo Fader
-	•	Adjusts playback tempo.
-	•	Mode selection buttons (+8, +16, Wide) with LED indicators.
-	•	16-Key Cherry MX Keypad
-	•	Functions in Edit Mode (to be added) or Mute Mode for muting individual tracks.
-	•	8-Key Cherry MX Keypad (2x9 Table)
-Each key has multiple functions depending on click, shift, or hold:
-	•	Click | Shift | Hold
-	•	Cue | Play | NA
-	•	A | Edit | NA
-	•	B | Mute | NA
-	•	Scene | New Scene | NA
-	•	Nudge | Tempo | NA
-	•	Copy | Paste | NA
-	•	Delete | Undo | NA
-	•	OK | Duplicate | NA
-	•	8x32 7-Segment LED Display
-	•	Large (0.28” per character).
-	•	Displays 4 columns of data in Scene Mode:
-	•	Original Tempo
-	•	Scene
-	•	A Track
-	•	B Track
-	•	Scene Mode
-	•	Use the OK key to select and assign scenes to Track A or B.
-	•	Build scenes from 16 editable tracks.
+## Features
 
-Photos
+### 🎵 Tracks & MIDI Control
+- **16 Tracks**: Each track consists of 4 bytes:  
+  - **Byte 1**: Type and channel  
+  - **Byte 2**: Data byte 1 (note) 
+  - **Byte 3**: Data byte 2 (velocity)
+  - **Byte 4**: Delay  
+- **Editing**: Tracks can be edited and muted via dedicated keypads.
 
-(Add images of the device and its components here)
+### 🔄 Magnetic Encoder & Sync Control
+- **Magnetic Encoder**:  
+  - Control track position.  
+  - Sync with song tempo "vinyl style".  
+  - **Shift Key** under the encoder for alternate functions.  
 
-License
+### 🎚️ Tempo Control
+- **Tempo Fader**: Fine-tune playback tempo.  
+- **Tempo Modes**:  
+  - Select tempo control range (+8, +16, wide) via buttons and LED indicators.
 
-This project is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+### ⌨️ Keypads & Modes
+#### 16-Key Cherry MX Keypad
+- **Modes**:  
+  - Edit mode (upcoming functionality).  
+  - Mute mode: Mute individual tracks.
 
-Summary:
+#### 8-Key Cherry MX Keypad 
+| Key        | Shift Function   | 
+|------------|------------------|
+| Cue        | Play             |
+| A          | Edit             |
+| B          | Mute             |
+| Scene      | New Scene        |
+| Nudge      | Tempo            |
+| Copy       | Paste            |
+| Delete     | Undo             |
+| OK         | Duplicate        |
 
-	•	You are free to:
-	•	Build and modify the hardware and firmware for personal use.
-	•	Share your modifications and designs as long as they comply with the license.
-	•	Restrictions:
-	•	Non-commercial use only. You may not use this project for commercial purposes.
-	•	You must provide appropriate credit and distribute your contributions under the same license.
+### 📟 Display
+- **8x32 7-Segment LED Display**:  
+  - Each character is 0.28".  
+  - Displays key information across 4 columns in Scene Mode:  
+    - Original tempo  
+    - Scene  
+    - A track  
+    - B track  
 
-For details, see the full license text in the LICENSE file.
+### 🎛️ Scene Mode
+- Use **OK Key** to select a scene and assign it to **Track A** or **Track B** via the **A** and **B** keys.  
+- Each scene comprises 16 editable tracks.  
+- Select and edit tracks using the **16-Key Keypad** in Edit Mode.  
+
+---
+
+## 📸 Photos
+_Add photos here._  
+
+---
+
+## License
+This project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).  
+
+- You are free to build and modify the hardware and software for **non-commercial purposes**.  
+- Commercial use of this project is strictly prohibited.  
