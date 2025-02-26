@@ -11,7 +11,7 @@
 		(effects
 			(font
 				(size 1 1)
-				(thickness 0.1)
+				(thickness 0.155)
 			)
 		)
 	)
@@ -99,13 +99,13 @@
 		)
 		(height 0)
 		(gr_text "60.0000 mm"
-			(at -1.1 0 90)
+			(at -1.155 0 90)
 			(layer "F.SilkS")
 			(uuid "2a7ff559-c749-4f7d-969a-80851c0175ab")
 			(effects
 				(font
 					(size 1 1)
-					(thickness 0.1)
+					(thickness 0.155)
 				)
 			)
 		)
