@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "mtt16")(type "KiCad")(uri "/Users/kacperjelonek/Documents/projekty/MTT16/schematics/mtt16.pretty")(options "")(descr ""))
+)
