@@ -25,7 +25,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "mtt16:RP2350A_QFN-60_EP_7.75x7.75_Pitch0.4mm"
 			(at -11.43 17.78 0)
 			(effects
 				(font
