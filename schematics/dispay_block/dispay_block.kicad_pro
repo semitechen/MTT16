@@ -69,16 +69,19 @@
         "copper_edge_clearance": "error",
         "copper_sliver": "warning",
         "courtyards_overlap": "error",
+        "creepage": "error",
         "diff_pair_gap_out_of_range": "error",
         "diff_pair_uncoupled_length_too_long": "error",
         "drill_out_of_range": "error",
         "duplicate_footprints": "warning",
         "extra_footprint": "warning",
         "footprint": "error",
+        "footprint_filters_mismatch": "ignore",
         "footprint_symbol_mismatch": "warning",
         "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
         "hole_near_hole": "error",
+        "hole_to_hole": "error",
         "holes_co_located": "warning",
         "invalid_outline": "error",
         "isolated_copper": "warning",
@@ -89,9 +92,11 @@
         "lib_footprint_mismatch": "warning",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
+        "mirrored_text_on_front_layer": "warning",
         "missing_courtyard": "ignore",
         "missing_footprint": "warning",
         "net_conflict": "warning",
+        "nonmirrored_text_on_back_layer": "warning",
         "npth_inside_courtyard": "ignore",
         "padstack": "warning",
         "pth_inside_courtyard": "ignore",
@@ -106,7 +111,9 @@
         "text_thickness": "warning",
         "through_hole_pad_without_hole": "error",
         "too_many_vias": "error",
+        "track_angle": "error",
         "track_dangling": "warning",
+        "track_segment_length": "error",
         "track_width": "error",
         "tracks_crossing": "error",
         "unconnected_items": "error",
@@ -119,6 +126,7 @@
         "min_clearance": 0.1,
         "min_connection": 0.2,
         "min_copper_edge_clearance": 0.5,
+        "min_groove_width": 0.0,
         "min_hole_clearance": 0.2,
         "min_hole_to_hole": 0.25,
         "min_microvia_diameter": 0.2,
@@ -131,15 +139,16 @@
         "min_track_width": 0.1,
         "min_via_annular_width": 0.15,
         "min_via_diameter": 0.6,
-        "solder_mask_to_copper_clearance": 0.0,
+        "solder_mask_to_copper_clearance": 0.005,
         "use_height_for_length_calcs": true
       },
       "teardrop_options": [
         {
-          "td_onpadsmd": true,
+          "td_onpthpad": true,
           "td_onroundshapesonly": false,
+          "td_onsmdpad": true,
           "td_ontrackend": false,
-          "td_onviapad": true
+          "td_onvia": true
         }
       ],
       "teardrop_parameters": [
@@ -179,7 +188,9 @@
       ],
       "track_widths": [
         0.0,
+        0.2,
         0.4,
+        1.0,
         2.0
       ],
       "tuning_pattern_settings": {
@@ -216,6 +227,10 @@
         {
           "diameter": 0.4,
           "drill": 0.2
+        },
+        {
+          "diameter": 1.1,
+          "drill": 0.5
         }
       ],
       "zones_allow_external_fillets": false
@@ -227,6 +242,7 @@
       "mfg": "",
       "mpn": ""
     },
+    "layer_pairs": [],
     "layer_presets": [],
     "viewports": []
   },
@@ -421,10 +437,15 @@
       "duplicate_sheet_names": "error",
       "endpoint_off_grid": "warning",
       "extra_units": "error",
+      "footprint_filter": "ignore",
+      "footprint_link_issues": "warning",
+      "four_way_junction": "ignore",
       "global_label_dangling": "warning",
       "hier_label_mismatch": "error",
       "label_dangling": "error",
+      "label_multiple_wires": "warning",
       "lib_symbol_issues": "warning",
+      "lib_symbol_mismatch": "warning",
       "missing_bidi_pin": "warning",
       "missing_input_pin": "warning",
       "missing_power_pin": "error",
@@ -437,9 +458,14 @@
       "pin_not_driven": "error",
       "pin_to_pin": "warning",
       "power_pin_not_driven": "error",
+      "same_local_global_label": "warning",
+      "similar_label_and_power": "warning",
       "similar_labels": "warning",
+      "similar_power": "warning",
       "simulation_model_issue": "ignore",
+      "single_global_label": "ignore",
       "unannotated": "error",
+      "unconnected_wire_endpoint": "warning",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
       "wire_dangling": "error"
@@ -451,7 +477,7 @@
   },
   "meta": {
     "filename": "dispay_block.kicad_pro",
-    "version": 1
+    "version": 3
   },
   "net_settings": {
     "classes": [
@@ -466,6 +492,7 @@
         "microvia_drill": 0.1,
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "via_diameter": 0.6,
@@ -476,15 +503,15 @@
         "bus_width": 12,
         "clearance": 0.18,
         "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "Anode",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.2,
+        "track_width": 0.3,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
@@ -493,13 +520,13 @@
         "bus_width": 12,
         "clearance": 0.18,
         "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "CC",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.4,
         "via_diameter": 0.6,
@@ -510,15 +537,15 @@
         "bus_width": 12,
         "clearance": 0.2,
         "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "Power",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.3,
+        "track_width": 0.4,
         "via_diameter": 0.6,
         "via_drill": 0.3,
         "wire_width": 6
@@ -527,13 +554,13 @@
         "bus_width": 12,
         "clearance": 0.2,
         "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
-        "name": "T_B",
+        "name": "Unit_To_Transistor",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 3,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "via_diameter": 0.6,
@@ -542,36 +569,140 @@
       }
     ],
     "meta": {
-      "version": 3
+      "version": 4
     },
     "net_colors": null,
     "netclass_assignments": {
-      "+3V3": "Power",
-      "/CC1": "CC",
-      "/CC10": "CC",
-      "/CC11": "CC",
-      "/CC12": "CC",
-      "/CC13": "CC",
-      "/CC14": "CC",
-      "/CC15": "CC",
-      "/CC16": "CC",
-      "/CC2": "CC",
-      "/CC3": "CC",
-      "/CC4": "CC",
-      "/CC5": "CC",
-      "/CC6": "CC",
-      "/CC7": "CC",
-      "/CC8": "CC",
-      "/CC9": "CC",
-      "/SWIO": "T_B",
-      "A_1": "Anode",
-      "A_2": "Anode",
-      "A_3": "Anode",
-      "A_4": "Anode",
-      "A_5": "Anode",
-      "A_6": "Anode",
-      "A_7": "Anode",
-      "A_8": "Anode",
+      "+3V3": [
+        "Power",
+        "Unit_To_Transistor"
+      ],
+      "+5V": [
+        "Power",
+        "Unit_To_Transistor"
+      ],
+      "/CC1": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC10": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC11": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC12": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC13": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC14": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC15": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC16": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC2": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC3": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC4": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC5": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC6": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC7": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC8": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/CC9": [
+        "CC",
+        "Unit_To_Transistor"
+      ],
+      "/SCL": [
+        "Unit_To_Transistor"
+      ],
+      "/SDA": [
+        "Unit_To_Transistor"
+      ],
+      "/SWIO": [
+        "Unit_To_Transistor"
+      ],
+      "A_1": [
+        "Anode"
+      ],
+      "A_10": [
+        "Anode"
+      ],
+      "A_11": [
+        "Anode"
+      ],
+      "A_12": [
+        "Anode"
+      ],
+      "A_13": [
+        "Anode"
+      ],
+      "A_14": [
+        "Anode"
+      ],
+      "A_15": [
+        "Anode"
+      ],
+      "A_16": [
+        "Anode"
+      ],
+      "A_2": [
+        "Anode"
+      ],
+      "A_3": [
+        "Anode"
+      ],
+      "A_4": [
+        "Anode"
+      ],
+      "A_5": [
+        "Anode"
+      ],
+      "A_6": [
+        "Anode"
+      ],
+      "A_7": [
+        "Anode"
+      ],
+      "A_8": [
+        "Anode",
+        "Unit_To_Transistor"
+      ],
+      "A_9": [
+        "Anode"
+      ],
       "B_1": "Anode",
       "B_2": "Anode",
       "B_3": "Anode",
@@ -580,40 +711,134 @@
       "B_6": "Anode",
       "B_7": "Anode",
       "B_8": "Anode",
+      "GND": [
+        "Power",
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q1-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q10-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q11-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q12-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q13-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q14-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q15-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(Q16-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q1A-B1)": "T_B",
       "Net-(Q1B-B2)": "T_B",
+      "Net-(Q2-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q2A-B1)": "T_B",
       "Net-(Q2B-B2)": "T_B",
+      "Net-(Q3-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q3A-B1)": "T_B",
       "Net-(Q3B-B2)": "T_B",
+      "Net-(Q4-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q4B-B2)": "T_B",
+      "Net-(Q5-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q5A-B1)": "T_B",
       "Net-(Q5B-B2)": "T_B",
+      "Net-(Q6-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q6A-B1)": "T_B",
       "Net-(Q6B-B2)": "T_B",
+      "Net-(Q7-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q7A-B1)": "T_B",
       "Net-(Q7B-B2)": "T_B",
+      "Net-(Q8-B)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(Q8A-B1)": "T_B",
       "Net-(Q8B-B2)": "T_B",
-      "Net-(U1-PA1)": "T_B",
-      "Net-(U1-PA2)": "T_B",
-      "Net-(U1-PC0)": "T_B",
-      "Net-(U1-PC3)": "T_B",
-      "Net-(U1-PC4)": "T_B",
+      "Net-(Q9-B)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PA1)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PA2)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PC0)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PC1)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PC2)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PC3)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PC4)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(U1-PC5)": "T_B",
       "Net-(U1-PC6)": "T_B",
-      "Net-(U1-PD0)": "T_B",
+      "Net-(U1-PC7)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PD0)": [
+        "Unit_To_Transistor"
+      ],
       "Net-(U1-PD1)": "T_B",
-      "Net-(U1-PD2)": "T_B",
-      "Net-(U1-PD3)": "T_B",
-      "Net-(U1-PD4)": "T_B",
-      "Net-(U1-PD5)": "T_B",
-      "Net-(U1-PD6)": "T_B",
-      "Net-(U1-PD7)": "T_B",
+      "Net-(U1-PD2)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PD3)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PD4)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PD5)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PD6)": [
+        "Unit_To_Transistor"
+      ],
+      "Net-(U1-PD7)": [
+        "Unit_To_Transistor"
+      ],
       "unconnected-(U1-PD4-Pad18)": "T_B",
       "unconnected-(U1-PD6-Pad20)": "T_B"
     },
-    "netclass_patterns": []
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "3V3"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
@@ -621,7 +846,7 @@
       "idf": "",
       "netlist": "",
       "plot": "~/Downloads/test/",
-      "pos_files": "",
+      "pos_files": "../../../../../Downloads/test/",
       "specctra_dsn": "",
       "step": "",
       "svg": "",
@@ -685,6 +910,7 @@
       ],
       "filter_string": "",
       "group_symbols": true,
+      "include_excluded_from_bom": false,
       "name": "Grouped By Value",
       "sort_asc": true,
       "sort_field": "Reference"
@@ -727,6 +953,7 @@
     },
     "page_layout_descr_file": "",
     "plot_directory": "",
+    "space_save_all_events": true,
     "spice_current_sheet_as_root": false,
     "spice_external_command": "spice \"%I\"",
     "spice_model_current_sheet_as_root": true,
