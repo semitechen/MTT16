@@ -1,7 +1,7 @@
 (footprint "MIDI_DIN5"
-	(version 20240108)
+	(version 20241229)
 	(generator "pcbnew")
-	(generator_version "8.0")
+	(generator_version "9.0")
 	(layer "F.Cu")
 	(descr "Din 5 (MIDI), Pro Signal P/N PSG03463")
 	(property "Reference" "MIDI_DIN5"
@@ -23,18 +23,6 @@
 			(font
 				(size 1.524 1.524)
 				(thickness 0.3048)
-			)
-		)
-	)
-	(property "Footprint" ""
-		(at 0 0 0)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "d2f0eb1d-b1f1-42da-b3ec-93879ff6cf5e")
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.15)
 			)
 		)
 	)
@@ -393,20 +381,6 @@
 		(layer "F.SilkS")
 		(uuid "5b9822a3-4988-4d0b-8875-eb492a46fac7")
 	)
-	(pad "" np_thru_hole circle
-		(at -5.00126 6.9977)
-		(size 2.49936 2.49936)
-		(drill 1.397)
-		(layers "F&B.Cu" "*.Mask")
-		(uuid "806d7e96-aeea-43e5-8c9f-310267e5ea3c")
-	)
-	(pad "" np_thru_hole circle
-		(at 5.00126 6.9977)
-		(size 2.49936 2.49936)
-		(drill 1.397)
-		(layers "F&B.Cu" "*.Mask")
-		(uuid "96a8d555-95f9-4202-ab79-1a7e29a52bda")
-	)
 	(pad "1" thru_hole circle
 		(at 7.49808 -2.9972)
 		(size 2.49936 2.49936)
@@ -447,6 +421,23 @@
 		(remove_unused_layers no)
 		(uuid "3fc87a93-513b-44b3-890d-7a85a80a024c")
 	)
+	(pad "6" thru_hole circle
+		(at -5.00126 6.9977)
+		(size 2.49936 2.49936)
+		(drill 1.397)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "806d7e96-aeea-43e5-8c9f-310267e5ea3c")
+	)
+	(pad "6" thru_hole circle
+		(at 5.00126 6.9977)
+		(size 2.49936 2.49936)
+		(drill 1.397)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "96a8d555-95f9-4202-ab79-1a7e29a52bda")
+	)
+	(embedded_fonts no)
 	(model "walter/conn_av/din-5.wrl"
 		(offset
 			(xyz 0 0 0)
