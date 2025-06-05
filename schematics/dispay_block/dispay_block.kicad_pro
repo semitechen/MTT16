@@ -108,6 +108,7 @@
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
         "text_height": "warning",
+        "text_on_edge_cuts": "error",
         "text_thickness": "warning",
         "through_hole_pad_without_hole": "error",
         "too_many_vias": "error",
@@ -703,14 +704,30 @@
       "A_9": [
         "Anode"
       ],
-      "B_1": "Anode",
-      "B_2": "Anode",
-      "B_3": "Anode",
-      "B_4": "Anode",
-      "B_5": "Anode",
-      "B_6": "Anode",
-      "B_7": "Anode",
-      "B_8": "Anode",
+      "B_1": [
+        "Anode"
+      ],
+      "B_2": [
+        "Anode"
+      ],
+      "B_3": [
+        "Anode"
+      ],
+      "B_4": [
+        "Anode"
+      ],
+      "B_5": [
+        "Anode"
+      ],
+      "B_6": [
+        "Anode"
+      ],
+      "B_7": [
+        "Anode"
+      ],
+      "B_8": [
+        "Anode"
+      ],
       "GND": [
         "Power",
         "Unit_To_Transistor"
@@ -739,42 +756,72 @@
       "Net-(Q16-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q1A-B1)": "T_B",
-      "Net-(Q1B-B2)": "T_B",
+      "Net-(Q1A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q1B-B2)": [
+        "T_B"
+      ],
       "Net-(Q2-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q2A-B1)": "T_B",
-      "Net-(Q2B-B2)": "T_B",
+      "Net-(Q2A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q2B-B2)": [
+        "T_B"
+      ],
       "Net-(Q3-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q3A-B1)": "T_B",
-      "Net-(Q3B-B2)": "T_B",
+      "Net-(Q3A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q3B-B2)": [
+        "T_B"
+      ],
       "Net-(Q4-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q4B-B2)": "T_B",
+      "Net-(Q4B-B2)": [
+        "T_B"
+      ],
       "Net-(Q5-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q5A-B1)": "T_B",
-      "Net-(Q5B-B2)": "T_B",
+      "Net-(Q5A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q5B-B2)": [
+        "T_B"
+      ],
       "Net-(Q6-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q6A-B1)": "T_B",
-      "Net-(Q6B-B2)": "T_B",
+      "Net-(Q6A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q6B-B2)": [
+        "T_B"
+      ],
       "Net-(Q7-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q7A-B1)": "T_B",
-      "Net-(Q7B-B2)": "T_B",
+      "Net-(Q7A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q7B-B2)": [
+        "T_B"
+      ],
       "Net-(Q8-B)": [
         "Unit_To_Transistor"
       ],
-      "Net-(Q8A-B1)": "T_B",
-      "Net-(Q8B-B2)": "T_B",
+      "Net-(Q8A-B1)": [
+        "T_B"
+      ],
+      "Net-(Q8B-B2)": [
+        "T_B"
+      ],
       "Net-(Q9-B)": [
         "Unit_To_Transistor"
       ],
@@ -799,15 +846,21 @@
       "Net-(U1-PC4)": [
         "Unit_To_Transistor"
       ],
-      "Net-(U1-PC5)": "T_B",
-      "Net-(U1-PC6)": "T_B",
+      "Net-(U1-PC5)": [
+        "T_B"
+      ],
+      "Net-(U1-PC6)": [
+        "T_B"
+      ],
       "Net-(U1-PC7)": [
         "Unit_To_Transistor"
       ],
       "Net-(U1-PD0)": [
         "Unit_To_Transistor"
       ],
-      "Net-(U1-PD1)": "T_B",
+      "Net-(U1-PD1)": [
+        "T_B"
+      ],
       "Net-(U1-PD2)": [
         "Unit_To_Transistor"
       ],
@@ -826,8 +879,12 @@
       "Net-(U1-PD7)": [
         "Unit_To_Transistor"
       ],
-      "unconnected-(U1-PD4-Pad18)": "T_B",
-      "unconnected-(U1-PD6-Pad20)": "T_B"
+      "unconnected-(U1-PD4-Pad18)": [
+        "T_B"
+      ],
+      "unconnected-(U1-PD6-Pad20)": [
+        "T_B"
+      ]
     },
     "netclass_patterns": [
       {
