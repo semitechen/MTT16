@@ -31,3 +31,11 @@ fp-info-cache
 
 #System generatared files
 .DS_Store
+
+#build files
+build/
+*.uf2
+*.elf
+*.bin
+*.hex
+*.map
