@@ -1,0 +1,7 @@
+CompileFlags:
+  CompilationDatabase: build
+Diagnostics:
+  Suppress:
+    - pp_file_not_found_angled_include_not_fatal
+    - unused-includes
+    - pp_file_not_found
