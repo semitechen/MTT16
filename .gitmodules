@@ -1,3 +1,6 @@
 [submodule "motherboard/code/pico-sdk"]
 	path = motherboard/software/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk
+[submodule "CH32V003_TRUE_MINIMAL"]
+	path = CH32V003_TRUE_MINIMAL
+	url = https://github.com/Enderjelen11/CH32V003_TRUE_MINIMAL
