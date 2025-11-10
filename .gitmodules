@@ -4,3 +4,4 @@
 [submodule "CH32V003_TRUE_MINIMAL"]
 	path = CH32V003_TRUE_MINIMAL
 	url = https://github.com/Enderjelen11/CH32V003_TRUE_MINIMAL
+  branch = main
