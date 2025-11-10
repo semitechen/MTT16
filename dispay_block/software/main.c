@@ -11,14 +11,14 @@
 #define SEGMENTS_ON_BOARD (16)
 #define SEGMENTS_TOTAL (96)
 
-#define INTERRUPT_PIN 5
-#define FALLING_EDGE_ENABLE 1
-#define RISING_EDGE_ENABLE 1
+#define INTERRUPT_PIN (5)
+#define FALLING_EDGE_ENABLE (1)
+#define RISING_EDGE_ENABLE (1)
 
 #define RES_OFFSET ((uint8_t)(0x10))
 
 #define SEGMENTS_ON_BOARD_LAST_RESET (SEGMENTS_ON_BOARD + 1)
-#define DO_NOTHING_BSHR 0
+#define DO_NOTHING_BSHR (0)
 
 typedef struct {
     volatile uint32_t* setPort;
