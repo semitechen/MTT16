@@ -7,7 +7,10 @@
 #include "../../CH32V003_TRUE_MINIMAL/ch32v003.h"
 #include <stdint.h>
 
+#ifndef BLOCK_NUMBER
 #define BLOCK_NUMBER (0)
+#endif
+
 #define SEGMENTS_ON_BOARD (16)
 #define SEGMENTS_TOTAL (96)
 
@@ -85,7 +88,7 @@ int main(void)
     GPIOC_CONFIG(PIN(INTERRUPT_PIN), GPIO_MODE_IN_PUPD);
     GPIOC_BSHR = PIN(INTERRUPT_PIN); // Pull-up
 
-    segmentCtr=0;
+    segmentCtr = BLOCK_NUMBER * SEGMENTS_ON_BOARD;
 
     SETUP_EXTI_PIN(INTERRUPT_PIN, AFIO_EXTICR_PC, FALLING_EDGE_ENABLE , RISING_EDGE_ENABLE , EXTI7_0_IRQn);
     ENABLE_GLOBAL_IRQS();
