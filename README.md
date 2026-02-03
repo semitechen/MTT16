@@ -1,3 +1,12 @@
+**⚠️WARNING⚠️**  
+This is a "Work in progress" project.  
+There is a known issue with the current hardware:  
+  The motherboard is not fully compatible with the [no-OS-FatFS-SD-SDIO-SPI-RPi-Pico lib](https://github.com/carlk3/no-OS-FatFS-SD-SDIO-SPI-RPi-Pico).
+To fix run the following command in the project root, **after installing submodules**:
+```shell
+sed -i '' 's/\.define PUBLIC SDIO_CLK_PIN_D0_OFFSET 30/\.define PUBLIC SDIO_CLK_PIN_D0_OFFSET 5/' ./motherboard/software/lib/no-OS-FatFS/src/sd_driver/SDIO/rp2040_sdio.pio
+```
+
 # Hardware Tracker MIDI Sequencer
 
 A hardware-style MIDI sequencer designed for DJs and home producers. This device combines tactile control with powerful features to streamline music creation and performance.
