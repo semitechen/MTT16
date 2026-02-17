@@ -31,6 +31,14 @@
 #define MSB_MASK 0x80
 #define DATA_MASK 0x7F
 
+#define HEX_PREFIX_LEN 2
+#define HEX_SHIFT_BITS 4
+#define HEX_ALPHA_OFFSET 10
+#define INVALID_HEX_ID -1
+
+#define PATH_FMT_SCAN "%s/%s"
+#define PATH_FMT_NEW "%s/%02X"
+
 #define STR_CONFIG_FILE "config.mid"
 #define STR_CONFIG_FILE_UPPER "CONFIG.MID"
 #define FILE_EXT_LOWER ".mid"
@@ -314,19 +322,63 @@ void storage_free_song(Song* song) {
     }
 }
 
-bool storage_load_song(const char* song_path, Song* song) {
+static int parse_hex_prefix(const char* name) {
+    if (!name[0] || !name[1]) return INVALID_HEX_ID;
+    int val = 0;
+    for (int i = 0; i < HEX_PREFIX_LEN; i++) {
+        char c = name[i];
+        val <<= HEX_SHIFT_BITS;
+        if (c >= '0' && c <= '9') val |= (c - '0');
+        else if (c >= 'A' && c <= 'F') val |= (c - 'A' + HEX_ALPHA_OFFSET);
+        else if (c >= 'a' && c <= 'f') val |= (c - 'a' + HEX_ALPHA_OFFSET);
+        else return INVALID_HEX_ID;
+    }
+    return val;
+}
+
+static bool get_song_path(const char* project_path, uint8_t song_id, char* out_path) {
+    DIR dir;
+    FILINFO fno;
+    bool found = false;
+
+    if (f_opendir(&dir, project_path) == FR_OK) {
+        while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0] != 0) {
+            if (fno.fattrib & AM_DIR) {
+                if (fno.fname[0] == '.') continue;
+                int parsed_id = parse_hex_prefix(fno.fname);
+                if (parsed_id == song_id) {
+                    snprintf(out_path, MAX_PATH_LEN, PATH_FMT_SCAN, project_path, fno.fname);
+                    found = true;
+                    break;
+                }
+            }
+        }
+        f_closedir(&dir);
+    }
+    
+    if (!found) {
+        snprintf(out_path, MAX_PATH_LEN, PATH_FMT_NEW, project_path, song_id);
+    }
+    
+    return found;
+}
+
+bool storage_load_song(const char* project_path, uint8_t song_id, Song* song) {
     storage_free_song(song);
     memset(song, 0, sizeof(Song));
     song->tempo = DEFAULT_TEMPO_BPM;
 
-    DIR dir;
-    FILINFO fno;
-    if (f_opendir(&dir, song_path) != FR_OK) {
+    char song_path[MAX_PATH_LEN];
+    if (!get_song_path(project_path, song_id, song_path)) {
         if (f_mkdir(song_path) == FR_OK) {
             return true;
         }
         return false;
     }
+
+    DIR dir;
+    FILINFO fno;
+    if (f_opendir(&dir, song_path) != FR_OK) return false;
 
     while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0] != 0) {
         if (fno.fattrib & AM_DIR) continue;
@@ -351,7 +403,7 @@ bool storage_load_song(const char* song_path, Song* song) {
 
         if (target_idx >= 0) {
             char filepath[MAX_PATH_LEN];
-            snprintf(filepath, sizeof(filepath), "%s/%s", song_path, fno.fname);
+            snprintf(filepath, MAX_PATH_LEN, PATH_FMT_SCAN, song_path, fno.fname);
 
             FIL fil;
             if (f_open(&fil, filepath, FA_READ) == FR_OK) {
@@ -406,7 +458,9 @@ bool storage_load_song(const char* song_path, Song* song) {
     return true;
 }
 
-bool storage_save_song(const char* song_path, Song* song) {
+bool storage_save_song(const char* project_path, uint8_t song_id, Song* song) {
+    char song_path[MAX_PATH_LEN];
+    get_song_path(project_path, song_id, song_path);
     f_mkdir(song_path);
 
     for (int i = 0; i < MAX_TRACKS; i++) {
@@ -424,7 +478,7 @@ bool storage_save_song(const char* song_path, Song* song) {
         }
 
         char filepath[MAX_PATH_LEN];
-        snprintf(filepath, sizeof(filepath), "%s/%s", song_path, filename);
+        snprintf(filepath, MAX_PATH_LEN, PATH_FMT_SCAN, song_path, filename);
 
         FIL fil;
         if (f_open(&fil, filepath, FA_WRITE | FA_CREATE_ALWAYS) != FR_OK) continue;

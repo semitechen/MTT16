@@ -41,8 +41,8 @@ typedef struct {
 
 bool storage_init(void);
 int storage_scan_folders(const char* path, char out_folder_list[][MAX_FILE_NAME_LEN], int max_folders);
-bool storage_load_song(const char* song_path, Song* song);
-bool storage_save_song(const char* song_path, Song* song);
+bool storage_load_song(const char* project_path, uint8_t song_id, Song* song);
+bool storage_save_song(const char* project_path, uint8_t song_id, Song* song);
 void storage_free_song(Song* song);
 
 #endif
