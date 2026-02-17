@@ -321,7 +321,12 @@ bool storage_load_song(const char* song_path, Song* song) {
 
     DIR dir;
     FILINFO fno;
-    if (f_opendir(&dir, song_path) != FR_OK) return false;
+    if (f_opendir(&dir, song_path) != FR_OK) {
+        if (f_mkdir(song_path) == FR_OK) {
+            return true;
+        }
+        return false;
+    }
 
     while (f_readdir(&dir, &fno) == FR_OK && fno.fname[0] != 0) {
         if (fno.fattrib & AM_DIR) continue;
