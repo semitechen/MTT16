@@ -35,6 +35,8 @@ add_executable(motherboard
     src/sd_config/sd_driver_config.c
 )
 
+pico_generate_pio_header(motherboard ${CMAKE_CURRENT_LIST_DIR}/src/midi_tx.pio)
+
 target_include_directories(motherboard PRIVATE
     src
     src/sd_config
@@ -45,6 +47,8 @@ target_link_libraries(motherboard
     hardware_spi
     hardware_dma
     hardware_pio
+    hardware_irq
+    hardware_clocks
     no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
 )
 

@@ -1,0 +1,16 @@
+.program midi_tx
+
+.define DELAY_7 7
+.define DELAY_6 6
+.define LOOP_VAL 7
+.define OUT_COUNT 1
+.define SIDE_IDLE 1
+.define SIDE_START 0
+
+.side_set 1 opt
+
+pull       side SIDE_IDLE [DELAY_7]
+set x, LOOP_VAL side SIDE_START [DELAY_7]
+bitloop:
+out pins, OUT_COUNT
+jmp x-- bitloop   [DELAY_6]
