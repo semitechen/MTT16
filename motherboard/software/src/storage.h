@@ -20,23 +20,23 @@
 #define MAX_PATH_LEN 128
 
 typedef struct {
-    uint32_t step;
-    uint8_t micro_delay;
-    uint8_t status;
-    uint8_t data1;
-    uint8_t data2;
+	uint32_t step;
+	uint8_t micro_delay;
+	uint8_t status;
+	uint8_t data1;
+	uint8_t data2;
 } MidiEvent;
 
 typedef struct {
-    MidiEvent* events;
-    uint32_t event_count;
-    uint32_t capacity;
-    bool is_modified;
+	MidiEvent* events;
+	uint32_t event_count;
+	uint32_t capacity;
+	bool is_modified;
 } Track;
 
 typedef struct {
-    uint16_t tempo;
-    Track tracks[MAX_TRACKS];
+	uint16_t tempo;
+	Track tracks[MAX_TRACKS];
 } Song;
 
 bool storage_init(void);

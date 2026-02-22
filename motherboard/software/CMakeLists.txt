@@ -16,10 +16,10 @@ set(SD_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/sd_config/fix_pio_offset.patc
 set(SD_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/no-OS-FatFS")
 
 add_custom_target(apply_sd_patch
-    COMMAND ${GIT_EXECUTABLE} checkout .
-    COMMAND ${GIT_EXECUTABLE} apply ${SD_PATCH_FILE}
-    WORKING_DIRECTORY ${SD_LIB_DIR}
-    VERBATIM
+	COMMAND ${GIT_EXECUTABLE} checkout .
+	COMMAND ${GIT_EXECUTABLE} apply ${SD_PATCH_FILE}
+	WORKING_DIRECTORY ${SD_LIB_DIR}
+	VERBATIM
 )
 
 add_subdirectory(lib/no-OS-FatFS/src build/no-OS-FatFS)
@@ -27,29 +27,29 @@ add_subdirectory(lib/no-OS-FatFS/src build/no-OS-FatFS)
 add_dependencies(no-OS-FatFS-SD-SDIO-SPI-RPi-Pico apply_sd_patch)
 
 add_executable(motherboard
-    src/main.c
-    src/display.c
-    src/midi.c
-    src/keyboard.c
-    src/storage.c
-    src/sd_config/sd_driver_config.c
+	src/main.c
+	src/display.c
+	src/midi.c
+	src/keyboard.c
+	src/storage.c
+	src/sd_config/sd_driver_config.c
 )
 
 pico_generate_pio_header(motherboard ${CMAKE_CURRENT_LIST_DIR}/src/midi_tx.pio)
 
 target_include_directories(motherboard PRIVATE
-    src
-    src/sd_config
+	src
+	src/sd_config
 )
 
 target_link_libraries(motherboard
-    pico_stdlib
-    hardware_spi
-    hardware_dma
-    hardware_pio
-    hardware_irq
-    hardware_clocks
-    no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
+	pico_stdlib
+	hardware_spi
+	hardware_dma
+	hardware_pio
+	hardware_irq
+	hardware_clocks
+	no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
 )
 
 pico_enable_stdio_usb(motherboard 1)
