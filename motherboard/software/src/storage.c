@@ -55,6 +55,11 @@ static uint32_t event_pool_used[MAX_LOADED_SONGS];
 static FATFS fs;
 static bool fs_mounted = false;
 
+char active_projects[MAX_ACTIVE_PROJECTS][MAX_PATH_LEN];
+
+static uint8_t ring_song_ids[MAX_LOADED_SONGS];
+static uint8_t ring_idx = 0;
+
 static uint16_t read_be16(FIL *fil) {
 	uint8_t bytes[2];
 	UINT br;
@@ -290,8 +295,9 @@ bool storage_init(void) {
 	fs_mounted = true;
 
 	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
-        event_pool_used[i] = 0;
-    }
+		event_pool_used[i] = 0;
+		ring_song_ids[i] = EMPTY_SLOT_ID;
+	}
 	return true;
 }
 
@@ -320,19 +326,19 @@ int storage_scan_folders(const char* path, char out_folder_list[][MAX_FILE_NAME_
 }
 
 void storage_free_song(Song* song) {
-    if (!song) return;
-    
-    int slot = song - loaded_songs;
-    if (slot >= 0 && slot < MAX_LOADED_SONGS) {
-        event_pool_used[slot] = 0;
-    }
+	if (!song) return;
+	
+	int slot = song - loaded_songs;
+	if (slot >= 0 && slot < MAX_LOADED_SONGS) {
+		event_pool_used[slot] = 0;
+	}
 
-    for (int i = 0; i < MAX_TRACKS; i++) {
-        song->tracks[i].events = NULL;
-        song->tracks[i].event_count = 0;
-        song->tracks[i].capacity = 0;
-        song->tracks[i].is_modified = false;
-    }
+	for (int i = 0; i < MAX_TRACKS; i++) {
+		song->tracks[i].events = NULL;
+		song->tracks[i].event_count = 0;
+		song->tracks[i].capacity = 0;
+		song->tracks[i].is_modified = false;
+	}
 }
 
 static int parse_hex_prefix(const char* name) {
@@ -446,17 +452,17 @@ bool storage_load_song(const char* project_path, uint8_t song_id, Song* song) {
 
 								Track *t = &song->tracks[target_idx];
 								if (ev_count > 0) {
-                                    int slot = song - loaded_songs;
-                                    if (slot >= 0 && slot < MAX_LOADED_SONGS) {
-                                        if ((event_pool_used[slot] + ev_count) <= MAX_EVENTS_PER_SONG) {
-                                            t->events = &event_pool[slot][event_pool_used[slot]];
-                                            event_pool_used[slot] += ev_count;
-                                            t->capacity = ev_count;
-                                            f_lseek(&fil, chunk_start);
-                                            track_load_data(&fil, chunk_len, t, ppqn);
-                                        }
-                                    }
-                                }
+									int slot = song - loaded_songs;
+									if (slot >= 0 && slot < MAX_LOADED_SONGS) {
+										if ((event_pool_used[slot] + ev_count) <= MAX_EVENTS_PER_SONG) {
+											t->events = &event_pool[slot][event_pool_used[slot]];
+											event_pool_used[slot] += ev_count;
+											t->capacity = ev_count;
+											f_lseek(&fil, chunk_start);
+											track_load_data(&fil, chunk_len, t, ppqn);
+										}
+									}
+								}
 								t->is_modified = false;
 								break; 
 							} else {
@@ -564,4 +570,44 @@ bool storage_save_song(const char* project_path, uint8_t song_id, Song* song) {
 	}
 
 	return true;
+}
+
+
+void storage_set_project(const char* project_name) {
+	strncpy(active_projects[PREV_PROJECT_IDX], active_projects[CURRENT_PROJECT_IDX], MAX_PATH_LEN - 1);
+	active_projects[PREV_PROJECT_IDX][MAX_PATH_LEN - 1] = '\0';
+	strncpy(active_projects[CURRENT_PROJECT_IDX], project_name, MAX_PATH_LEN - 1);
+	active_projects[CURRENT_PROJECT_IDX][MAX_PATH_LEN - 1] = '\0';
+}
+
+bool event_storage_load(uint8_t song_id, bool previous_project) {
+	uint8_t target_proj = previous_project ? PREV_PROJECT_IDX : CURRENT_PROJECT_IDX;
+	
+	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
+		if (ring_song_ids[i] == song_id && loaded_songs[i].project_index == target_proj) {
+			for (int j = 0; j < MAX_LOADED_SONGS; j++) {
+				if (ring_song_ids[j] != EMPTY_SLOT_ID) {
+					storage_save_song(active_projects[loaded_songs[j].project_index], ring_song_ids[j], &loaded_songs[j]);
+				}
+			}
+			return true;
+		}
+	}
+
+	if (ring_song_ids[ring_idx] != EMPTY_SLOT_ID) {
+		storage_save_song(active_projects[loaded_songs[ring_idx].project_index], ring_song_ids[ring_idx], &loaded_songs[ring_idx]);
+		storage_free_song(&loaded_songs[ring_idx]);
+	}
+
+	bool success = storage_load_song(active_projects[target_proj], song_id, &loaded_songs[ring_idx]);
+	
+	if (success) {
+		loaded_songs[ring_idx].project_index = target_proj;
+		ring_song_ids[ring_idx] = song_id;
+		ring_idx = (ring_idx + 1) % MAX_LOADED_SONGS;
+	} else {
+		ring_song_ids[ring_idx] = EMPTY_SLOT_ID;
+	}
+
+	return success;
 }

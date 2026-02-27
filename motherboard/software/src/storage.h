@@ -22,6 +22,10 @@
 #define MAX_LOADED_SONGS 4
 #define MAX_EVENTS_PER_SONG 4096
 
+#define MAX_ACTIVE_PROJECTS 2
+#define CURRENT_PROJECT_IDX 0
+#define PREV_PROJECT_IDX 1
+#define EMPTY_SLOT_ID 0xFF
 
 typedef struct {
 	uint32_t step;
@@ -40,15 +44,21 @@ typedef struct {
 
 typedef struct {
 	uint16_t tempo;
+	uint8_t project_index;
 	Track tracks[MAX_TRACKS];
 } Song;
 
 extern Song loaded_songs[MAX_LOADED_SONGS];
+
+extern char active_projects[MAX_ACTIVE_PROJECTS][MAX_PATH_LEN];
 
 bool storage_init(void);
 int storage_scan_folders(const char* path, char out_folder_list[][MAX_FILE_NAME_LEN], int max_folders);
 bool storage_load_song(const char* project_path, uint8_t song_id, Song* song);
 bool storage_save_song(const char* project_path, uint8_t song_id, Song* song);
 void storage_free_song(Song* song);
+
+bool event_storage_load(uint8_t song_id, bool previous_project);
+void storage_set_project(const char* project_name);
 
 #endif
