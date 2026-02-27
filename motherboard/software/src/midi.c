@@ -5,6 +5,7 @@
 #include "hardware/irq.h"
 #include "hardware/clocks.h"
 #include "midi_tx.pio.h"
+#include "storage.h"
 
 #define MIDI_OUT1_PIN 28
 #define MIDI_OUT2_PIN 27
@@ -14,6 +15,16 @@
 #define PIO_PIN_COUNT 1
 #define DMA_RING_NONE 0
 #define DMA_INT_MASK(chan) (1u << (chan))
+
+#define USEC_PER_MINUTE 60000000
+#define STEPS_PER_BEAT 4
+#define MICRO_DELAY_MAX 256
+#define MAX_EVENTS_PER_STEP 256
+#define WAIT_POLL_MS 10
+#define MIDI_REALTIME_MASK 0xF8
+#define MIDI_TYPE_MASK 0xF0
+#define MIDI_PROG_CHANGE 0xC0
+#define MIDI_CHAN_PRESSURE 0xD0
 
 MidiPort midi_out_1;
 MidiPort midi_out_2;
@@ -106,5 +117,129 @@ void midi_send(MidiPort *port) {
 	} else {
 		dma_channel_set_read_addr(target_dma, port->buffer_A, false);
 		dma_channel_set_trans_count(target_dma, port->length_A, true);
+	}
+}
+
+
+static uint8_t get_midi_msg_len(uint8_t status) {
+	if (status >= MIDI_REALTIME_MASK) return 1;
+	uint8_t type = status & MIDI_TYPE_MASK;
+	if (type == MIDI_PROG_CHANGE || type == MIDI_CHAN_PRESSURE) return 2;
+	return 3;
+}
+
+static void push_to_port(MidiPort* port, MidiEvent* ev) {
+	uint8_t len = get_midi_msg_len(ev->status);
+	uint16_t* current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
+	uint8_t* buf = port->fill_buffer_A_next ? port->buffer_B : port->buffer_A;
+
+	if (*current_len + len > MIDI_BUFFER_SIZE) {
+		while (port->is_busy) {
+			tight_loop_contents();
+		}
+		midi_send(port);
+		port->fill_buffer_A_next = !port->fill_buffer_A_next;
+		current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
+		buf = port->fill_buffer_A_next ? port->buffer_B : port->buffer_A;
+		*current_len = 0;
+	}
+
+	buf[*current_len + 0] = ev->status;
+	if (len > 1) buf[*current_len + 1] = ev->data1;
+	if (len > 2) buf[*current_len + 2] = ev->data2;
+	*current_len += len;
+}
+
+static void flush_port(MidiPort* port) {
+	uint16_t* current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
+	if (*current_len > 0) {
+		while (port->is_busy) {
+			tight_loop_contents();
+		}
+		midi_send(port);
+		port->fill_buffer_A_next = !port->fill_buffer_A_next;
+		current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
+		*current_len = 0;
+	}
+}
+
+void play_song(uint8_t song_id, uint8_t project_index) {
+	Song* song = NULL;
+	
+	while (!song) {
+		if (song_id < MAX_LOADED_SONGS) {
+			if (loaded_songs[song_id].project_index == project_index && loaded_songs[song_id].tempo > 0) {
+				song = &loaded_songs[song_id];
+			}
+		}
+		if (!song) {
+			sleep_ms(WAIT_POLL_MS);
+		}
+	}
+
+	uint32_t step_us = USEC_PER_MINUTE / (song->tempo * STEPS_PER_BEAT);
+	uint32_t track_indices[MAX_MUSIC_TRACKS] = {0};
+	uint32_t current_step = 0;
+
+	midi_out_1.length_A = 0;
+	midi_out_1.length_B = 0;
+	midi_out_2.length_A = 0;
+	midi_out_2.length_B = 0;
+
+	absolute_time_t next_step_time = get_absolute_time();
+
+	while (true) {
+		MidiEvent* step_events[MAX_EVENTS_PER_STEP];
+		int step_event_count = 0;
+		bool any_track_active = false;
+
+		for (int t = 0; t < MAX_MUSIC_TRACKS; t++) {
+			Track* trk = &song->tracks[t];
+			if (track_indices[t] < trk->event_count) {
+				any_track_active = true;
+				while (track_indices[t] < trk->event_count && trk->events[track_indices[t]].step == current_step) {
+					if (step_event_count < MAX_EVENTS_PER_STEP) {
+						step_events[step_event_count++] = &trk->events[track_indices[t]];
+					}
+					track_indices[t]++;
+				}
+			}
+		}
+
+		if (!any_track_active && step_event_count == 0) {
+			break;
+		}
+
+		for (int i = 1; i < step_event_count; i++) {
+			MidiEvent* key = step_events[i];
+			int j = i - 1;
+			while (j >= 0 && step_events[j]->micro_delay > key->micro_delay) {
+				step_events[j + 1] = step_events[j];
+				j--;
+			}
+			step_events[j + 1] = key;
+		}
+
+		int i = 0;
+		while (i < step_event_count) {
+			uint8_t current_delay = step_events[i]->micro_delay;
+			uint32_t delay_us = (step_us * current_delay) / MICRO_DELAY_MAX;
+			absolute_time_t ev_time = delayed_by_us(next_step_time, delay_us);
+
+			sleep_until(ev_time);
+
+			while (i < step_event_count && step_events[i]->micro_delay == current_delay) {
+				push_to_port(&midi_out_1, step_events[i]);
+				push_to_port(&midi_out_2, step_events[i]);
+				i++;
+			}
+			
+			flush_port(&midi_out_1);
+			flush_port(&midi_out_2);
+		}
+
+		next_step_time = delayed_by_us(next_step_time, step_us);
+		sleep_until(next_step_time);
+		current_step++;
 	}
 }
