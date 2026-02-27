@@ -19,6 +19,10 @@
 #define MAX_FILE_NAME_LEN 64
 #define MAX_PATH_LEN 128
 
+#define MAX_LOADED_SONGS 4
+#define MAX_EVENTS_PER_SONG 4096
+
+
 typedef struct {
 	uint32_t step;
 	uint8_t micro_delay;
@@ -38,6 +42,8 @@ typedef struct {
 	uint16_t tempo;
 	Track tracks[MAX_TRACKS];
 } Song;
+
+extern Song loaded_songs[MAX_LOADED_SONGS];
 
 bool storage_init(void);
 int storage_scan_folders(const char* path, char out_folder_list[][MAX_FILE_NAME_LEN], int max_folders);

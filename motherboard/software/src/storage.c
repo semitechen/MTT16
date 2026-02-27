@@ -47,6 +47,11 @@
 #define MIN_MUSIC_TRACK_NUM 1
 #define MAX_MUSIC_TRACK_NUM 16
 
+Song loaded_songs[MAX_LOADED_SONGS];
+
+static MidiEvent event_pool[MAX_LOADED_SONGS][MAX_EVENTS_PER_SONG];
+static uint32_t event_pool_used[MAX_LOADED_SONGS];
+
 static FATFS fs;
 static bool fs_mounted = false;
 
@@ -280,8 +285,13 @@ static void track_load_data(FIL *fil, uint32_t chunk_len, Track *track, uint16_t
 bool storage_init(void) {
 	if (fs_mounted) return true;
 	FRESULT fr = f_mount(&fs, "0:", 1);
+
 	if (fr != FR_OK) return false;
 	fs_mounted = true;
+
+	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
+        event_pool_used[i] = 0;
+    }
 	return true;
 }
 
@@ -310,16 +320,19 @@ int storage_scan_folders(const char* path, char out_folder_list[][MAX_FILE_NAME_
 }
 
 void storage_free_song(Song* song) {
-	if (!song) return;
-	for (int i = 0; i < MAX_TRACKS; i++) {
-		if (song->tracks[i].events) {
-			free(song->tracks[i].events);
-			song->tracks[i].events = NULL;
-		}
-		song->tracks[i].event_count = 0;
-		song->tracks[i].capacity = 0;
-		song->tracks[i].is_modified = false;
-	}
+    if (!song) return;
+    
+    int slot = song - loaded_songs;
+    if (slot >= 0 && slot < MAX_LOADED_SONGS) {
+        event_pool_used[slot] = 0;
+    }
+
+    for (int i = 0; i < MAX_TRACKS; i++) {
+        song->tracks[i].events = NULL;
+        song->tracks[i].event_count = 0;
+        song->tracks[i].capacity = 0;
+        song->tracks[i].is_modified = false;
+    }
 }
 
 static int parse_hex_prefix(const char* name) {
@@ -432,16 +445,18 @@ bool storage_load_song(const char* project_path, uint8_t song_id, Song* song) {
 								track_alloc_ram(&fil, chunk_len, &ev_count, is_config ? &song->tempo : NULL);
 
 								Track *t = &song->tracks[target_idx];
-								
 								if (ev_count > 0) {
-									t->events = malloc(ev_count * sizeof(MidiEvent));
-									if (t->events) {
-										t->capacity = ev_count;
-										f_lseek(&fil, chunk_start);
-										track_load_data(&fil, chunk_len, t, ppqn);
-									}
-								}
-
+                                    int slot = song - loaded_songs;
+                                    if (slot >= 0 && slot < MAX_LOADED_SONGS) {
+                                        if ((event_pool_used[slot] + ev_count) <= MAX_EVENTS_PER_SONG) {
+                                            t->events = &event_pool[slot][event_pool_used[slot]];
+                                            event_pool_used[slot] += ev_count;
+                                            t->capacity = ev_count;
+                                            f_lseek(&fil, chunk_start);
+                                            track_load_data(&fil, chunk_len, t, ppqn);
+                                        }
+                                    }
+                                }
 								t->is_modified = false;
 								break; 
 							} else {
