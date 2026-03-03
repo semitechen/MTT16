@@ -47,8 +47,6 @@
 #define MIN_MUSIC_TRACK_NUM 1
 #define MAX_MUSIC_TRACK_NUM 16
 
-Song loaded_songs[MAX_LOADED_SONGS];
-
 static MidiEvent event_pool[MAX_LOADED_SONGS][MAX_EVENTS_PER_SONG];
 static uint32_t event_pool_used[MAX_LOADED_SONGS];
 
@@ -57,7 +55,6 @@ static bool fs_mounted = false;
 
 char active_projects[MAX_ACTIVE_PROJECTS][MAX_PATH_LEN];
 
-static uint8_t ring_song_ids[MAX_LOADED_SONGS];
 static uint8_t ring_idx = 0;
 
 static uint16_t read_be16(FIL *fil) {

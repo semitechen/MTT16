@@ -1,11 +1,11 @@
 #include "midi.h"
+#include "shared.h"
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
 #include "hardware/clocks.h"
 #include "midi_tx.pio.h"
-#include "storage.h"
 
 #define MIDI_OUT1_PIN 28
 #define MIDI_OUT2_PIN 27
@@ -101,8 +101,13 @@ void midi_out_init(void) {
 	
 	midi_out_1.fill_buffer_A_next = true;
 	midi_out_1.is_busy = false;
+	midi_out_1.length_A = 0;
+	midi_out_1.length_B = 0;
+	
 	midi_out_2.fill_buffer_A_next = true;
 	midi_out_2.is_busy = false;
+	midi_out_2.length_A = 0;
+	midi_out_2.length_B = 0;
 }
 
 void midi_send(MidiPort *port) {
@@ -120,7 +125,6 @@ void midi_send(MidiPort *port) {
 	}
 }
 
-
 static uint8_t get_midi_msg_len(uint8_t status) {
 	if (status >= MIDI_REALTIME_MASK) return 1;
 	uint8_t type = status & MIDI_TYPE_MASK;
@@ -130,17 +134,17 @@ static uint8_t get_midi_msg_len(uint8_t status) {
 
 static void push_to_port(MidiPort* port, MidiEvent* ev) {
 	uint8_t len = get_midi_msg_len(ev->status);
-	uint16_t* current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
-	uint8_t* buf = port->fill_buffer_A_next ? port->buffer_B : port->buffer_A;
+	uint16_t* current_len = port->fill_buffer_A_next ? &port->length_A : &port->length_B;
+	uint8_t* buf = port->fill_buffer_A_next ? port->buffer_A : port->buffer_B;
 
 	if (*current_len + len > MIDI_BUFFER_SIZE) {
 		while (port->is_busy) {
 			tight_loop_contents();
 		}
-		midi_send(port);
 		port->fill_buffer_A_next = !port->fill_buffer_A_next;
-		current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
-		buf = port->fill_buffer_A_next ? port->buffer_B : port->buffer_A;
+		midi_send(port);
+		current_len = port->fill_buffer_A_next ? &port->length_A : &port->length_B;
+		buf = port->fill_buffer_A_next ? port->buffer_A : port->buffer_B;
 		*current_len = 0;
 	}
 
@@ -151,14 +155,14 @@ static void push_to_port(MidiPort* port, MidiEvent* ev) {
 }
 
 static void flush_port(MidiPort* port) {
-	uint16_t* current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
+	uint16_t* current_len = port->fill_buffer_A_next ? &port->length_A : &port->length_B;
 	if (*current_len > 0) {
 		while (port->is_busy) {
 			tight_loop_contents();
 		}
-		midi_send(port);
 		port->fill_buffer_A_next = !port->fill_buffer_A_next;
-		current_len = port->fill_buffer_A_next ? &port->length_B : &port->length_A;
+		midi_send(port);
+		current_len = port->fill_buffer_A_next ? &port->length_A : &port->length_B;
 		*current_len = 0;
 	}
 }
@@ -167,9 +171,10 @@ void play_song(uint8_t song_id, uint8_t project_index) {
 	Song* song = NULL;
 	
 	while (!song) {
-		if (song_id < MAX_LOADED_SONGS) {
-			if (loaded_songs[song_id].project_index == project_index && loaded_songs[song_id].tempo > 0) {
-				song = &loaded_songs[song_id];
+		for (int i = 0; i < MAX_LOADED_SONGS; i++) {
+			if (ring_song_ids[i] == song_id && loaded_songs[i].project_index == project_index && loaded_songs[i].tempo > 0) {
+				song = &loaded_songs[i];
+				break;
 			}
 		}
 		if (!song) {

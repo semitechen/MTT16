@@ -33,6 +33,7 @@ add_executable(motherboard
 	src/keyboard.c
 	src/storage.c
 	src/sd_config/sd_driver_config.c
+	src/shared.c
 )
 
 pico_generate_pio_header(motherboard ${CMAKE_CURRENT_LIST_DIR}/src/midi_tx.pio)
