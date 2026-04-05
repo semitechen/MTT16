@@ -29,7 +29,7 @@ add_dependencies(no-OS-FatFS-SD-SDIO-SPI-RPi-Pico apply_sd_patch)
 add_executable(motherboard
 	src/main.c
 	src/display.c
-	src/midi.c
+	src/sequencer.c
 	src/keyboard.c
 	src/storage.c
 	src/sd_config/sd_driver_config.c

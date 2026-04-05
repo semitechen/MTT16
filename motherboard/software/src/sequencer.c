@@ -1,4 +1,4 @@
-#include "midi.h"
+#include "sequencer.h"
 #include "shared.h"
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
