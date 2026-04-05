@@ -53,6 +53,13 @@ target_link_libraries(motherboard
 	no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
 )
 
+add_custom_target(flash
+	DEPENDS motherboard
+	COMMAND picotool load -f -x motherboard.uf2
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMENT "Forcing BOOTSEL reboot and flashing motherboard.uf2..."
+)
+
 pico_enable_stdio_usb(motherboard 1)
 pico_enable_stdio_uart(motherboard 0)
 
