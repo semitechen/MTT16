@@ -1,6 +1,5 @@
 #include "sequencer.h"
 #include "shared.h"
-#include "storage.h"
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
@@ -63,6 +62,7 @@ static bool stop_seq_request = false;
 static bool is_playing = false;
 static uint64_t current_chain_track_selector = 0;
 static Chain Seq_chains[NUM_OF_CHAINS];
+static SongProvider song_provider_cb = NULL;
 
 static void dma_handler() {
 	if (dma_hw->ints1 & DMA_INT_MASK(dma_chan_1)) {
@@ -109,6 +109,10 @@ static void setup_dma(int dma_chan, int pio_sm) {
 	);
 	
 	dma_channel_set_irq1_enabled(dma_chan, true);
+}
+
+void sequencer_init(SongProvider provider) {
+	song_provider_cb = provider;
 }
 
 void midi_out_init(void) {
@@ -196,28 +200,10 @@ static void flush_port(MidiPort* port) {
 	}
 }
 
-static bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
-	Song* song_a = NULL;
-	Song* song_b = NULL;
-	int timeout_retries = MAX_LOAD_RETRIES;
-	uint32_t active_notes[MIDI_CHANNELS][MIDI_NOTE_CHUNKS] = {0};
-
-	while ((!song_a || !song_b) && timeout_retries > 0) {
-		if (!song_a) {
-			song_a = storage_get_loaded_song(song_id_a, Seq_chains[CHAIN_A].project_index);
-		}
-		if (!song_b) {
-			song_b = storage_get_loaded_song(song_id_b, Seq_chains[CHAIN_B].project_index);
-		}
-
-		if (!song_a || !song_b) {
-			sleep_ms(WAIT_POLL_MS);
-			timeout_retries--;
-		}
-	}
-
+static bool play_songs(Song* song_a, Song* song_b, uint16_t selector) {
 	if (!song_a || !song_b) return false;
 
+	uint32_t active_notes[MIDI_CHANNELS][MIDI_NOTE_CHUNKS] = {0};
 	uint32_t step_us = USEC_PER_MINUTE / (current_tempo * STEPS_PER_BEAT);
 	uint32_t track_indices[MAX_MUSIC_TRACKS] = {0};
 	uint32_t current_step = 0;
@@ -317,15 +303,32 @@ static bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) 
 }
 
 bool event_start_seq(void){
+	if (!song_provider_cb) return false;
+
 	is_playing = true;
 	stop_seq_request = false;
 	uint64_t chain_step_counter = 0;
 	while(!stop_seq_request){
 		uint8_t chain_A_pos = chain_step_counter%Seq_chains[CHAIN_A].length;
 		uint8_t chain_B_pos = chain_step_counter%Seq_chains[CHAIN_B].length;
-		uint8_t current_chain_A_song = Seq_chains[CHAIN_A].songs[chain_A_pos];
-		uint8_t current_chain_B_song = Seq_chains[CHAIN_B].songs[chain_B_pos];
-		if(!play_songs(current_chain_A_song, current_chain_B_song, current_chain_track_selector)){
+		uint8_t song_id_a = Seq_chains[CHAIN_A].songs[chain_A_pos];
+		uint8_t song_id_b = Seq_chains[CHAIN_B].songs[chain_B_pos];
+
+		Song* song_a = NULL;
+		Song* song_b = NULL;
+		int timeout_retries = MAX_LOAD_RETRIES;
+
+		while ((!song_a || !song_b) && timeout_retries > 0) {
+			song_a = song_provider_cb(song_id_a, Seq_chains[CHAIN_A].project_index);
+			song_b = song_provider_cb(song_id_b, Seq_chains[CHAIN_B].project_index);
+
+			if (!song_a || !song_b) {
+				sleep_ms(WAIT_POLL_MS);
+				timeout_retries--;
+			}
+		}
+
+		if(!song_a || !song_b || !play_songs(song_a, song_b, current_chain_track_selector)){
 			is_playing = false;
 			return false;
 		}

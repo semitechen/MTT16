@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include "shared.h"
 
+typedef Song* (*SongProvider)(uint8_t song_id, uint8_t project_index);
+
+void sequencer_init(SongProvider provider);
 void midi_out_init(void);
 bool event_start_seq(void);
 void sequencer_stop(void);
