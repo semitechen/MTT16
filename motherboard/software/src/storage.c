@@ -286,6 +286,7 @@ static void track_load_data(FIL *fil, uint32_t chunk_len, Track *track, uint16_t
 }
 bool storage_init(void) {
 	if (fs_mounted) return true;
+	sd_init_driver();
 	FRESULT fr = f_mount(&fs, "0:", 1);
 
 	if (fr != FR_OK) return false;

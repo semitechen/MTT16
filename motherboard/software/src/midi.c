@@ -29,19 +29,19 @@
 MidiPort midi_out_1;
 MidiPort midi_out_2;
 
-static PIO midi_pio = pio0;
+static PIO midi_pio = pio1;
 static int pio_sm_1;
 static int pio_sm_2;
 static int dma_chan_1;
 static int dma_chan_2;
 
 static void dma_handler() {
-	if (dma_hw->ints0 & DMA_INT_MASK(dma_chan_1)) {
-		dma_hw->ints0 = DMA_INT_MASK(dma_chan_1);
+	if (dma_hw->ints1 & DMA_INT_MASK(dma_chan_1)) {
+		dma_hw->ints1 = DMA_INT_MASK(dma_chan_1);
 		midi_out_1.is_busy = false;
 	}
-	if (dma_hw->ints0 & DMA_INT_MASK(dma_chan_2)) {
-		dma_hw->ints0 = DMA_INT_MASK(dma_chan_2);
+	if (dma_hw->ints1 & DMA_INT_MASK(dma_chan_2)) {
+		dma_hw->ints1 = DMA_INT_MASK(dma_chan_2);
 		midi_out_2.is_busy = false;
 	}
 }
@@ -79,7 +79,7 @@ static void setup_dma(int dma_chan, int pio_sm) {
 		false
 	);
 	
-	dma_channel_set_irq0_enabled(dma_chan, true);
+	dma_channel_set_irq1_enabled(dma_chan, true);
 }
 
 void midi_out_init(void) {
@@ -96,8 +96,8 @@ void midi_out_init(void) {
 	setup_dma(dma_chan_1, pio_sm_1);
 	setup_dma(dma_chan_2, pio_sm_2);
 	
-	irq_set_exclusive_handler(DMA_IRQ_0, dma_handler);
-	irq_set_enabled(DMA_IRQ_0, true);
+	irq_set_exclusive_handler(DMA_IRQ_1, dma_handler);
+	irq_set_enabled(DMA_IRQ_1, true);
 	
 	midi_out_1.fill_buffer_A_next = true;
 	midi_out_1.is_busy = false;
