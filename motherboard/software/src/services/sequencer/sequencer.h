@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "shared.h"
+#include "../midi_types.h"
+#include "../project_types.h"
 
 typedef Song* (*SongProvider)(uint8_t song_id, uint8_t project_index);
 
 void sequencer_init(SongProvider provider);
-void midi_out_init(void);
-bool event_start_seq(void);
+void sequencer_start(void);
 void sequencer_stop(void);
 
 void sequencer_set_tempo(uint8_t tempo);

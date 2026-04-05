@@ -1,19 +1,14 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
-#include "shared.h"
-
-#define INTERNAL_PPQN 96
-#define TICKS_PER_STEP (INTERNAL_PPQN / 4)
+#include "../midi_types.h"
+#include "../project_types.h"
 
 #define MAX_SONGS_IN_PROJECT 256
 #define MAX_FOLDERS_IN_DIR 256
-
 #define DEFAULT_TEMPO_BPM 120
-
 #define MAX_FILE_NAME_LEN 64
 #define MAX_PATH_LEN 128
-
 #define MAX_ACTIVE_PROJECTS 2
 
 bool storage_init(void);

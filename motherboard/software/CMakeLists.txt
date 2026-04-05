@@ -12,7 +12,7 @@ pico_sdk_init()
 
 find_package(Git REQUIRED)
 
-set(SD_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/sd_config/fix_pio_offset.patch")
+set(SD_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/drivers/sd/sd_config/fix_pio_offset.patch")
 set(SD_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/no-OS-FatFS")
 
 add_custom_target(apply_sd_patch
@@ -27,20 +27,30 @@ add_subdirectory(lib/no-OS-FatFS/src build/no-OS-FatFS)
 add_dependencies(no-OS-FatFS-SD-SDIO-SPI-RPi-Pico apply_sd_patch)
 
 add_executable(motherboard
-	src/main.c
-	src/display.c
-	src/sequencer.c
-	src/keyboard.c
-	src/storage.c
-	src/sd_config/sd_driver_config.c
-	src/shared.c
+	src/app/main.c
+	src/services/sequencer/sequencer.c
+	src/services/storage/storage.c
+	src/services/ui/display_manager.c
+	src/drivers/midi/midi_driver.c
+	src/drivers/sd/sd_driver.c
+	src/drivers/sd/sd_config/sd_driver_config.c
+	src/drivers/display/display_driver.c
 )
 
-pico_generate_pio_header(motherboard ${CMAKE_CURRENT_LIST_DIR}/src/midi_tx.pio)
+pico_generate_pio_header(motherboard ${CMAKE_CURRENT_LIST_DIR}/src/drivers/midi/midi_tx.pio)
 
 target_include_directories(motherboard PRIVATE
 	src
-	src/sd_config
+	src/app
+	src/services
+	src/services/sequencer
+	src/services/storage
+	src/services/ui
+	src/drivers
+	src/drivers/midi
+	src/drivers/sd
+	src/drivers/sd/sd_config
+	src/drivers/display
 )
 
 target_link_libraries(motherboard
