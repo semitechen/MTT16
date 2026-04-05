@@ -6,6 +6,8 @@
 #include "hardware/irq.h"
 #include "hardware/clocks.h"
 #include "midi_tx.pio.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 #define MIDI_OUT1_PIN 28
 #define MIDI_OUT2_PIN 27
@@ -21,6 +23,7 @@
 #define MICRO_DELAY_MAX 256
 #define MAX_EVENTS_PER_STEP 256
 #define WAIT_POLL_MS 10
+#define MAX_LOAD_RETRIES 10
 #define MIDI_REALTIME_MASK 0xF8
 #define MIDI_TYPE_MASK 0xF0
 #define MIDI_PROG_CHANGE 0xC0
@@ -34,6 +37,12 @@ static int pio_sm_1;
 static int pio_sm_2;
 static int dma_chan_1;
 static int dma_chan_2;
+
+uint8_t current_tempo = 120;
+
+bool stop_seq_request = false;
+
+uint16_t currect_chain_track_selector = 0;
 
 static void dma_handler() {
 	if (dma_hw->ints1 & DMA_INT_MASK(dma_chan_1)) {
@@ -167,22 +176,38 @@ static void flush_port(MidiPort* port) {
 	}
 }
 
-void play_song(uint8_t song_id, uint8_t project_index) {
-	Song* song = NULL;
-	
-	while (!song) {
-		for (int i = 0; i < MAX_LOADED_SONGS; i++) {
-			if (ring_song_ids[i] == song_id && loaded_songs[i].project_index == project_index && loaded_songs[i].tempo > 0) {
-				song = &loaded_songs[i];
-				break;
-			}
+static Song* get_loaded_song(uint8_t song_id, uint8_t project_index) {
+	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
+		if (ring_song_ids[i] == song_id && 
+			loaded_songs[i].project_index == project_index) {
+			return &loaded_songs[i];
 		}
-		if (!song) {
+	}
+	return NULL;
+}
+
+bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
+	Song* song_a = NULL;
+	Song* song_b = NULL;
+	int timeout_retries = MAX_LOAD_RETRIES;
+
+	while ((!song_a || !song_b) && timeout_retries > 0) {
+		if (!song_a) {
+			song_a = get_loaded_song(song_id_a, Seq_chains[CHAIN_A].project_index);
+		}
+		if (!song_b) {
+			song_b = get_loaded_song(song_id_b, Seq_chains[CHAIN_B].project_index);
+		}
+
+		if (!song_a || !song_b) {
 			sleep_ms(WAIT_POLL_MS);
+			timeout_retries--;
 		}
 	}
 
-	uint32_t step_us = USEC_PER_MINUTE / (song->tempo * STEPS_PER_BEAT);
+	if (!song_a || !song_b) return false;
+
+	uint32_t step_us = USEC_PER_MINUTE / (current_tempo * STEPS_PER_BEAT);
 	uint32_t track_indices[MAX_MUSIC_TRACKS] = {0};
 	uint32_t current_step = 0;
 
@@ -199,7 +224,9 @@ void play_song(uint8_t song_id, uint8_t project_index) {
 		bool any_track_active = false;
 
 		for (int t = 0; t < MAX_MUSIC_TRACKS; t++) {
-			Track* trk = &song->tracks[t];
+			Song* active_song = (selector & (1 << (15 - t))) ? song_b : song_a;
+			Track* trk = &active_song->tracks[t];
+			
 			if (track_indices[t] < trk->event_count) {
 				any_track_active = true;
 				while (track_indices[t] < trk->event_count && trk->events[track_indices[t]].step == current_step) {
@@ -247,4 +274,22 @@ void play_song(uint8_t song_id, uint8_t project_index) {
 		sleep_until(next_step_time);
 		current_step++;
 	}
+
+	return true;
+}
+
+bool event_start_seq(){
+	uint64_t chain_step_counter = 0;
+	while(!stop_seq_request){
+		uint8_t chain_A_pos = chain_step_counter%Seq_chains[CHAIN_A].length;
+		uint8_t chain_B_pos = chain_step_counter%Seq_chains[CHAIN_B].length;
+		uint8_t current_chain_A_song = Seq_chains[CHAIN_A].songs[chain_A_pos];
+		uint8_t current_chain_B_song = Seq_chains[CHAIN_B].songs[chain_B_pos];
+		if(!play_songs(current_chain_A_song, current_chain_B_song, currect_chain_track_selector)){
+			return false;
+		}
+		chain_step_counter++;
+	}
+	stop_seq_request = false;
+	return true;
 }

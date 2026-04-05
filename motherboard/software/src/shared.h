@@ -8,8 +8,13 @@
 #define MAX_TRACKS 17
 #define CONFIG_TRACK_INDEX 16
 
-#define MAX_LOADED_SONGS 4
-#define MAX_EVENTS_PER_SONG 4096
+#define MAX_LOADED_SONGS 32
+#define MAX_EVENTS_PER_SONG 512
+
+#define MAX_SONGS_IN_CHAIN 16
+#define CHAIN_A 0
+#define CHAIN_B 1
+#define NUM_OF_CHAINS 2
 
 #define CURRENT_PROJECT_IDX 0
 #define PREV_PROJECT_IDX 1
@@ -36,7 +41,15 @@ typedef struct {
 	Track tracks[MAX_TRACKS];
 } Song;
 
+typedef struct {
+	uint8_t songs[MAX_SONGS_IN_CHAIN];
+	uint8_t length;
+	uint8_t project_index;
+} Chain;
+
 extern Song loaded_songs[MAX_LOADED_SONGS];
 extern uint8_t ring_song_ids[MAX_LOADED_SONGS];
+
+extern Chain Seq_chains[NUM_OF_CHAINS];
 
 #endif

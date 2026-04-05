@@ -17,7 +17,12 @@ typedef struct {
 extern MidiPort midi_out_1;
 extern MidiPort midi_out_2;
 
+extern bool stop_seq_request;
+
+extern uint8_t current_tempo;
+
+extern uint16_t currect_chain_track_selector;
+
 void midi_out_init(void);
 void midi_send(MidiPort *port);
-
-void play_song(uint8_t song_id, uint8_t project_index);
+bool event_start_seq();
