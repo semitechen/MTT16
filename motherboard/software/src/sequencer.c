@@ -29,6 +29,14 @@
 #define MIDI_PROG_CHANGE 0xC0
 #define MIDI_CHAN_PRESSURE 0xD0
 
+#define MIDI_CHANNELS 16
+#define MIDI_NOTE_CHUNKS 4
+#define BITS_PER_CHUNK 32
+
+#define MIDI_CHANNEL_MASK 0x0F
+#define MIDI_NOTE_OFF 0x80
+#define MIDI_NOTE_ON 0x90
+
 MidiPort midi_out_1;
 MidiPort midi_out_2;
 
@@ -42,6 +50,7 @@ uint8_t current_tempo = 120;
 
 bool stop_seq_request = false;
 
+//needs to be changed as it doesn't allow more than 16 tracks
 uint16_t currect_chain_track_selector = 0;
 
 static void dma_handler() {
@@ -190,6 +199,7 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 	Song* song_a = NULL;
 	Song* song_b = NULL;
 	int timeout_retries = MAX_LOAD_RETRIES;
+	uint32_t active_notes[MIDI_CHANNELS][MIDI_NOTE_CHUNKS] = {0};
 
 	while ((!song_a || !song_b) && timeout_retries > 0) {
 		if (!song_a) {
@@ -218,11 +228,12 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 
 	absolute_time_t next_step_time = get_absolute_time();
 
-	while (true) {
+	while (!stop_seq_request) {
 		MidiEvent* step_events[MAX_EVENTS_PER_STEP];
 		int step_event_count = 0;
 		bool any_track_active = false;
 
+		//needs to be changed as it doesn't allow more than 16 tracks
 		for (int t = 0; t < MAX_MUSIC_TRACKS; t++) {
 			Song* active_song = (selector & (1 << (15 - t))) ? song_b : song_a;
 			Track* trk = &active_song->tracks[t];
@@ -261,11 +272,21 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 			sleep_until(ev_time);
 
 			while (i < step_event_count && step_events[i]->micro_delay == current_delay) {
+				uint8_t status = step_events[i]->status;
+				uint8_t type = status & MIDI_TYPE_MASK;
+				uint8_t ch = status & MIDI_CHANNEL_MASK;
+				uint8_t note = step_events[i]->data1;
+
+				if (type == MIDI_NOTE_ON) {
+					active_notes[ch][note / BITS_PER_CHUNK] |= (1UL << (note % BITS_PER_CHUNK));
+				} else if (type == MIDI_NOTE_OFF) {
+					active_notes[ch][note / BITS_PER_CHUNK] &= ~(1UL << (note % BITS_PER_CHUNK));
+				}
+
 				push_to_port(&midi_out_1, step_events[i]);
 				push_to_port(&midi_out_2, step_events[i]);
 				i++;
 			}
-			
 			flush_port(&midi_out_1);
 			flush_port(&midi_out_2);
 		}
@@ -274,6 +295,23 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 		sleep_until(next_step_time);
 		current_step++;
 	}
+
+	for (int ch = 0; ch < MIDI_CHANNELS; ch++) {
+		for (int chunk = 0; chunk < MIDI_NOTE_CHUNKS; chunk++) {
+			uint32_t mask = active_notes[ch][chunk];
+			for (int bit = 0; bit < BITS_PER_CHUNK && mask; bit++) {
+				if (mask & (1UL << bit)) {
+					MidiEvent note_off = {0, 0, MIDI_NOTE_OFF | ch, (chunk * BITS_PER_CHUNK) + bit, 0};
+					push_to_port(&midi_out_1, &note_off);
+					push_to_port(&midi_out_2, &note_off);
+					mask &= ~(1UL << bit);
+				}
+			}
+		}
+	}
+
+	flush_port(&midi_out_1);
+	flush_port(&midi_out_2);
 
 	return true;
 }
