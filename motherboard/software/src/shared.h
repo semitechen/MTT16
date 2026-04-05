@@ -47,9 +47,4 @@ typedef struct {
 	uint8_t project_index;
 } Chain;
 
-extern Song loaded_songs[MAX_LOADED_SONGS];
-extern uint8_t ring_song_ids[MAX_LOADED_SONGS];
-
-extern Chain Seq_chains[NUM_OF_CHAINS];
-
 #endif

@@ -47,13 +47,15 @@
 #define MIN_MUSIC_TRACK_NUM 1
 #define MAX_MUSIC_TRACK_NUM 16
 
+static Song loaded_songs[MAX_LOADED_SONGS];
+static uint8_t ring_song_ids[MAX_LOADED_SONGS];
 static MidiEvent event_pool[MAX_LOADED_SONGS][MAX_EVENTS_PER_SONG];
 static uint32_t event_pool_used[MAX_LOADED_SONGS];
 
 static FATFS fs;
 static bool fs_mounted = false;
 
-char active_projects[MAX_ACTIVE_PROJECTS][MAX_PATH_LEN];
+static char active_projects[MAX_ACTIVE_PROJECTS][MAX_PATH_LEN];
 
 static uint8_t ring_idx = 0;
 
@@ -284,6 +286,7 @@ static void track_load_data(FIL *fil, uint32_t chunk_len, Track *track, uint16_t
 		qsort(track->events, track->event_count, sizeof(MidiEvent), compare_events);
 	}
 }
+
 bool storage_init(void) {
 	if (fs_mounted) return true;
 	sd_init_driver();
@@ -608,4 +611,22 @@ bool event_storage_load(uint8_t song_id, bool previous_project) {
 	}
 
 	return success;
+}
+
+Song* storage_get_loaded_song(uint8_t song_id, uint8_t project_index) {
+	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
+		if (ring_song_ids[i] == song_id && 
+			loaded_songs[i].project_index == project_index) {
+			return &loaded_songs[i];
+		}
+	}
+	return NULL;
+}
+
+void storage_save_all(void) {
+	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
+		if (ring_song_ids[i] != EMPTY_SLOT_ID) {
+			storage_save_song(active_projects[loaded_songs[i].project_index], ring_song_ids[i], &loaded_songs[i]);
+		}
+	}
 }

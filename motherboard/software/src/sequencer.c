@@ -1,5 +1,6 @@
 #include "sequencer.h"
 #include "shared.h"
+#include "storage.h"
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/dma.h"
@@ -37,8 +38,19 @@
 #define MIDI_NOTE_OFF 0x80
 #define MIDI_NOTE_ON 0x90
 
-MidiPort midi_out_1;
-MidiPort midi_out_2;
+#define MIDI_BUFFER_SIZE 256
+
+typedef struct {
+	uint8_t buffer_A[MIDI_BUFFER_SIZE];
+	uint8_t buffer_B[MIDI_BUFFER_SIZE];
+	uint16_t length_A;
+	uint16_t length_B;
+	bool fill_buffer_A_next;
+	volatile bool is_busy;
+} MidiPort;
+
+static MidiPort midi_out_1;
+static MidiPort midi_out_2;
 
 static PIO midi_pio = pio1;
 static int pio_sm_1;
@@ -46,12 +58,11 @@ static int pio_sm_2;
 static int dma_chan_1;
 static int dma_chan_2;
 
-uint8_t current_tempo = 120;
-
-bool stop_seq_request = false;
-
-//needs to be changed as it doesn't allow more than 16 tracks
-uint16_t currect_chain_track_selector = 0;
+static uint8_t current_tempo = 120;
+static bool stop_seq_request = false;
+static bool is_playing = false;
+static uint64_t current_chain_track_selector = 0;
+static Chain Seq_chains[NUM_OF_CHAINS];
 
 static void dma_handler() {
 	if (dma_hw->ints1 & DMA_INT_MASK(dma_chan_1)) {
@@ -128,7 +139,7 @@ void midi_out_init(void) {
 	midi_out_2.length_B = 0;
 }
 
-void midi_send(MidiPort *port) {
+static void midi_send(MidiPort *port) {
 	if (port->is_busy) return;
 	
 	port->is_busy = true;
@@ -185,17 +196,7 @@ static void flush_port(MidiPort* port) {
 	}
 }
 
-static Song* get_loaded_song(uint8_t song_id, uint8_t project_index) {
-	for (int i = 0; i < MAX_LOADED_SONGS; i++) {
-		if (ring_song_ids[i] == song_id && 
-			loaded_songs[i].project_index == project_index) {
-			return &loaded_songs[i];
-		}
-	}
-	return NULL;
-}
-
-bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
+static bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 	Song* song_a = NULL;
 	Song* song_b = NULL;
 	int timeout_retries = MAX_LOAD_RETRIES;
@@ -203,10 +204,10 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 
 	while ((!song_a || !song_b) && timeout_retries > 0) {
 		if (!song_a) {
-			song_a = get_loaded_song(song_id_a, Seq_chains[CHAIN_A].project_index);
+			song_a = storage_get_loaded_song(song_id_a, Seq_chains[CHAIN_A].project_index);
 		}
 		if (!song_b) {
-			song_b = get_loaded_song(song_id_b, Seq_chains[CHAIN_B].project_index);
+			song_b = storage_get_loaded_song(song_id_b, Seq_chains[CHAIN_B].project_index);
 		}
 
 		if (!song_a || !song_b) {
@@ -233,9 +234,8 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 		int step_event_count = 0;
 		bool any_track_active = false;
 
-		//needs to be changed as it doesn't allow more than 16 tracks
 		for (int t = 0; t < MAX_MUSIC_TRACKS; t++) {
-			Song* active_song = (selector & (1 << (15 - t))) ? song_b : song_a;
+			Song* active_song = (selector & (1 << (MAX_MUSIC_TRACKS - t - 1))) ? song_b : song_a;
 			Track* trk = &active_song->tracks[t];
 			
 			if (track_indices[t] < trk->event_count) {
@@ -316,18 +316,49 @@ bool play_songs(uint8_t song_id_a, uint8_t song_id_b, uint16_t selector) {
 	return true;
 }
 
-bool event_start_seq(){
+bool event_start_seq(void){
+	is_playing = true;
+	stop_seq_request = false;
 	uint64_t chain_step_counter = 0;
 	while(!stop_seq_request){
 		uint8_t chain_A_pos = chain_step_counter%Seq_chains[CHAIN_A].length;
 		uint8_t chain_B_pos = chain_step_counter%Seq_chains[CHAIN_B].length;
 		uint8_t current_chain_A_song = Seq_chains[CHAIN_A].songs[chain_A_pos];
 		uint8_t current_chain_B_song = Seq_chains[CHAIN_B].songs[chain_B_pos];
-		if(!play_songs(current_chain_A_song, current_chain_B_song, currect_chain_track_selector)){
+		if(!play_songs(current_chain_A_song, current_chain_B_song, current_chain_track_selector)){
+			is_playing = false;
 			return false;
 		}
 		chain_step_counter++;
 	}
+	is_playing = false;
 	stop_seq_request = false;
 	return true;
+}
+
+void sequencer_stop(void) {
+	stop_seq_request = true;
+}
+
+void sequencer_set_tempo(uint8_t tempo) {
+	current_tempo = tempo;
+}
+
+uint8_t sequencer_get_tempo(void) {
+	return current_tempo;
+}
+
+void sequencer_set_track_selector(uint64_t selector) {
+	current_chain_track_selector = selector;
+}
+
+Chain* sequencer_get_chain(uint8_t chain_id) {
+	if (chain_id < NUM_OF_CHAINS) {
+		return &Seq_chains[chain_id];
+	}
+	return NULL;
+}
+
+bool sequencer_is_playing(void) {
+	return is_playing;
 }
